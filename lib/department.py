@@ -1,5 +1,4 @@
 # lib/department.py
-
 from __init__ import CURSOR, CONN
 
 
@@ -27,7 +26,6 @@ class Department:
         """
         CURSOR.execute(sql)
         CONN.commit()
-
     @classmethod
     def drop_table(cls):
         """ Drop the table that persists Department instances """
@@ -58,7 +56,6 @@ class Department:
         department = cls(name, location)
         department.save()
         return department
-
     def update(self):
         """Update the table row corresponding to the current Department instance."""
         sql = """
@@ -86,7 +83,6 @@ class Department:
 
         # Set the id to None
         self.id = None
-
     @classmethod
     def instance_from_db(cls, row):
         """Return a Department object having the attribute values from the table row."""
@@ -94,7 +90,7 @@ class Department:
         # Check the dictionary for an existing instance using the row's primary key
         department = cls.all.get(row[0])
         if department:
-            # ensure attributes match row values in case local object was modified
+            # ensure attributes match row values in case local instance was modified
             department.name = row[1]
             department.location = row[2]
         else:
@@ -115,7 +111,6 @@ class Department:
         rows = CURSOR.execute(sql).fetchall()
 
         return [cls.instance_from_db(row) for row in rows]
-
     @classmethod
     def find_by_id(cls, id):
         """Return a Department object corresponding to the table row matching the specified primary key"""
@@ -139,3 +134,16 @@ class Department:
 
         row = CURSOR.execute(sql, (name,)).fetchone()
         return cls.instance_from_db(row) if row else None
+
+    def employees(self):
+        """Return list of employees associated with current department"""
+        from employee import Employee
+        sql = """
+            SELECT * FROM employees
+            WHERE department_id = ?
+        """
+        CURSOR.execute(sql, (self.id,),)
+        rows = CURSOR.fetchall()
+        return [
+            Employee.instance_from_db(row) for row in rows
+        ]
